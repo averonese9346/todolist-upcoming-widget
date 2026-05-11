@@ -1,8 +1,5 @@
 // Netlify Function: todoist-upcoming.js
-// Simple serverless function that fetches Todoist tasks and returns HTML for the current month.
-// Make sure you set TODOIST_TOKEN in Netlify environment variables.
-
-const fetch = require('node-fetch');
+// Uses global fetch (Node 18+). Make sure TODOIST_TOKEN is set in Netlify env vars.
 
 exports.handler = async function(event, context) {
   const token = process.env.TODOIST_TOKEN;
@@ -11,7 +8,6 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    // Fetch all active tasks
     const res = await fetch('https://api.todoist.com/rest/v2/tasks', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -21,26 +17,18 @@ exports.handler = async function(event, context) {
     }
     const tasks = await res.json();
 
-    // Determine current month and year in local time
     const now = new Date();
-    const month = now.getMonth(); // 0-11
+    const month = now.getMonth();
     const year = now.getFullYear();
 
-    // Filter tasks that have a due date in this month
     const tasksThisMonth = tasks.filter(t => {
       if (!t.due || !t.due.date) return false;
       const d = new Date(t.due.date);
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
-    // Sort by due date
-    tasksThisMonth.sort((a,b) => {
-      const da = new Date(a.due.date);
-      const db = new Date(b.due.date);
-      return da - db;
-    });
+    tasksThisMonth.sort((a,b) => new Date(a.due.date) - new Date(b.due.date));
 
-    // Build HTML
     let html = '';
     if (tasksThisMonth.length === 0) {
       html = '<p>No tasks with due dates this month.</p>';
@@ -53,7 +41,6 @@ exports.handler = async function(event, context) {
       }).join('');
     }
 
-    // Return HTML with headers that allow framing in Dashly
     return {
       statusCode: 200,
       headers: {
