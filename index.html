@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Todoist Upcoming Widget</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body { font-family: system-ui, -apple-system, Arial, sans-serif; padding: 12px; color:#111; }
+      h1 { font-size: 18px; margin: 0 0 8px 0; }
+      .task { padding:8px 0; border-bottom:1px solid #eee; }
+      .date { color:#666; font-size:12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Todoist Upcoming (monthly)</h1>
+    <div id="content">
+      <p>Loading tasks…</p>
+    </div>
+    <script>
+      fetch('/.netlify/functions/todoist-upcoming')
+        .then(r => r.text())
+        .then(html => { document.getElementById('content').innerHTML = html; })
+        .catch(e => { document.getElementById('content').innerText = 'Error loading widget'; });
+    </script>
+  </body>
+</html>
