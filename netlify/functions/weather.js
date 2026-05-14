@@ -1,7 +1,6 @@
 exports.handler = async function (event) {
   const location = event.queryStringParameters?.location;
 
-  // Predefined coordinates (no API key needed)
   const locations = {
     ingleside: { lat: 42.3817, lon: -88.1531, name: "Ingleside, IL" },
     chicago: { lat: 41.8781, lon: -87.6298, name: "Chicago, IL" }
@@ -22,6 +21,8 @@ exports.handler = async function (event) {
       `?latitude=${loc.lat}&longitude=${loc.lon}` +
       `&current_weather=true` +
       `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+      `&temperature_unit=fahrenheit` +
+      `&windspeed_unit=mph` +
       `&timezone=auto`;
 
     const res = await fetch(url);
@@ -35,19 +36,20 @@ exports.handler = async function (event) {
         <h3>${loc.name}</h3>
 
         <div style="font-size: 28px; font-weight: bold;">
-          ${current.temperature}°C
+          ${current.temperature}°F
         </div>
 
-        <div>Wind: ${current.windspeed} km/h</div>
+        <div>Wind: ${current.windspeed} mph</div>
 
         <hr />
 
         <div>
-          <strong>7-Day Forecast</strong>
+          <strong>5-Day Forecast</strong>
           <ul style="padding-left: 16px;">
             ${daily.time.slice(0, 5).map((day, i) => `
               <li>
-                ${day}: ${daily.temperature_2m_min[i]}° / ${daily.temperature_2m_max[i]}° C
+                ${day}: ${daily.temperature_2m_min[i]}°F / ${daily.temperature_2m_max[i]}°F
+                — ${daily.precipitation_probability_max[i]}% rain
               </li>
             `).join('')}
           </ul>
