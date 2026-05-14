@@ -8,14 +8,13 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    // Use the supported REST endpoint for tasks
+    // Supported REST endpoint for tasks
     const res = await fetch('https://api.todoist.com/rest/v2/tasks', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
     if (!res.ok) {
       const txt = await res.text();
-      // Return the API message so you can see the exact problem in the browser
       return {
         statusCode: 500,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -25,23 +24,18 @@ exports.handler = async function(event, context) {
 
     const tasks = await res.json();
 
-    // Determine current month and year in local time
     const now = new Date();
-    const month = now.getMonth(); // 0-11
+    const month = now.getMonth();
     const year = now.getFullYear();
 
-    // Filter tasks that have a due date in this month
     const tasksThisMonth = tasks.filter(t => {
       if (!t.due || !t.due.date) return false;
-      // Todoist may return date-only (YYYY-MM-DD) or datetime; Date handles both
       const d = new Date(t.due.date);
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
-    // Sort by due date
     tasksThisMonth.sort((a,b) => new Date(a.due.date) - new Date(b.due.date));
 
-    // Build HTML
     let html = '';
     if (tasksThisMonth.length === 0) {
       html = '<p>No tasks with due dates this month.</p>';
@@ -70,4 +64,3 @@ exports.handler = async function(event, context) {
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
