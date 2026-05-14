@@ -1,6 +1,5 @@
 // Netlify Function: todoist-upcoming.js
 // Requires TODOIST_TOKEN in Netlify environment variables
-// Uses Todoist API v1
 
 exports.handler = async function(event, context) {
   const token = process.env.TODOIST_TOKEN;
@@ -23,14 +22,14 @@ exports.handler = async function(event, context) {
       const txt = await res.text();
       return {
         statusCode: 500,
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8'
-        },
         body: 'Todoist API error: ' + txt
       };
     }
 
-    const tasks = await res.json();
+    const data = await res.json();
+
+    // Todoist v1 wraps tasks inside "results"
+    const tasks = Array.isArray(data) ? data : data.results || [];
 
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -64,23 +63,13 @@ exports.handler = async function(event, context) {
         const dueDate = new Date(task.due.datetime || task.due.date);
 
         const dateStr = task.due.datetime
-          ? dueDate.toLocaleString(undefined, {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit'
-            })
-          : dueDate.toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric'
-            });
+          ? dueDate.toLocaleString()
+          : dueDate.toLocaleDateString();
 
         return `
-          <div class="task">
+          <div class="task" style="padding:10px;border-bottom:1px solid #ddd;">
             <div><strong>${escapeHtml(task.content)}</strong></div>
-            <div class="date">${dateStr}</div>
+            <div style="font-size:0.9em;color:#666;">${dateStr}</div>
           </div>
         `;
       }).join('');
@@ -97,7 +86,7 @@ exports.handler = async function(event, context) {
   } catch (err) {
     return {
       statusCode: 500,
-      body: 'Server error: ' + String(err)
+      body: 'Server error: ' + err.message
     };
   }
 };
