@@ -1,22 +1,61 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Todoist Widget</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <title>Amber's Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <body>
-    <h1>Todoist Upcoming (monthly)</h1>
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      background: white;
+      color: #111;
+    }
 
-    <div id="content">Loading tasks…</div>
+    h1 {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
 
-    <script>
-      fetch('/.netlify/functions/todoist-upcoming')
-        .then(r => r.text())
-        .then(html => {
-          document.getElementById('content').innerHTML = html;
-        });
-    </script>
-  </body>
+    .widget {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .note {
+      color: #666;
+      font-size: 14px;
+    }
+
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Todoist Dashboard</h1>
+
+  <div class="widget">
+    <p>Your Todoist backend was Netlify-based.</p>
+
+    <p class="note">
+      Since you’re now using GitHub Pages, live API task fetching is disabled.
+    </p>
+
+    <p>
+      Open Todoist directly:<br>
+      <a href="https://todoist.com/app/today" target="_blank">
+        View Todoist
+      </a>
+    </p>
+  </div>
+
+</body>
 </html>
