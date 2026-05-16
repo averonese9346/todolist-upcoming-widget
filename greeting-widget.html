@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Daily Greeting Widget</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      margin: 0;
+      padding: 12px;
+      color: #111;
+    }
+
+    .greeting {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(6px);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .message {
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="greeting"></div>
+
+<script>
+/* =========================
+   TIME OF DAY
+========================= */
+function getTimeOfDay(hour) {
+  if (hour >= 5 && hour < 12) return "Good Morning";
+  if (hour >= 12 && hour < 17) return "Good Afternoon";
+  if (hour >= 17 && hour < 21) return "Good Evening";
+  return "Good Night";
+}
+
+/* =========================
+   STABLE DAILY RANDOM
+========================= */
+function seededRandom(seed) {
+  let x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function getDaySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+/* =========================
+   CONTENT POOLS
+========================= */
+const emojis = [
+  "🌞","🌻","✨","🌈","🔥","💫","🌿","🦋","🌊","🌙","⭐","🌸","🍀","⚡","🧘‍♀️"
+];
+
+const messages = [
+  "You’re building something beautiful today.",
+  "Small steps still move you forward.",
+  "Your energy sets the tone for your whole day.",
+  "You are allowed to take up space.",
+  "Progress, not perfection.",
+  "Today is a good day to trust yourself.",
+  "You’re doing better than you think.",
+  "Keep going — momentum is magic.",
+  "Your focus is your superpower.",
+  "Let today be soft and intentional."
+];
+
+/* =========================
+   PICK FUNCTION
+========================= */
+function pick(list, seed) {
+  return list[Math.floor(seededRandom(seed) * list.length)];
+}
+
+/* =========================
+   RENDER
+========================= */
+function renderGreeting(name = "Amber") {
+  const now = new Date();
+  const hour = now.getHours();
+
+  const timeLabel = getTimeOfDay(hour);
+  const seed = getDaySeed();
+
+  const emoji = pick(emojis, seed);
+  const message = pick(messages, seed + 42);
+
+  document.getElementById("greeting").innerHTML = `
+    <div class="greeting">
+      <div class="title">
+        ${emoji} ${timeLabel}, ${name}
+      </div>
+      <div class="message">
+        ${message}
+      </div>
+    </div>
+  `;
+}
+
+renderGreeting("Amber");
+</script>
+
+</body>
+</html>
