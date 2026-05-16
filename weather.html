@@ -8,24 +8,32 @@
   <style>
     body {
       font-family: system-ui, Arial, sans-serif;
-      padding: 16px;
+      padding: 12px;
       margin: 0;
       color: #111;
     }
 
     h2 {
-      margin-top: 0;
+      margin: 0 0 6px 0;
+      font-size: 18px;
     }
 
     .hour {
       display: flex;
-      justify-content: space-between;
-      padding: 4px 0;
-      font-size: 14px;
+      align-items: center;
+      gap: 8px;
+      padding: 1px 0;
+      font-size: 13px;
+      line-height: 1.1;
     }
 
     ul {
-      padding-left: 18px;
+      padding-left: 16px;
+      margin: 6px 0;
+    }
+
+    hr {
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -39,8 +47,9 @@ const locations = {
   chicago: { lat: 41.8781, lon: -87.6298, name: "Chicago, IL" }
 };
 
-// Change this to whichever you want default
-const loc = locations.chicago;
+const params = new URLSearchParams(window.location.search);
+const selected = params.get("city") || "ingleside";
+const loc = locations[selected];
 
 function icon(code) {
   if ([0].includes(code)) return "☀️";
@@ -58,8 +67,8 @@ async function loadWeather() {
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${loc.lat}&longitude=${loc.lon}` +
     `&current_weather=true` +
-    `&hourly=temperature_2m,apparent_temperature,weathercode` +
-    `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode` +
+    `&hourly=temperature_2m,weathercode` +
+    `&daily=temperature_2m_max,temperature_2m_min,weathercode` +
     `&temperature_unit=fahrenheit` +
     `&windspeed_unit=mph` +
     `&timezone=auto`;
@@ -71,9 +80,7 @@ async function loadWeather() {
   const hourly = data.hourly;
   const daily = data.daily;
 
-  const nowIndex = 0;
-
-  const hourlyHTML = hourly.time.slice(nowIndex, nowIndex + 6).map((t, i) => `
+  const hourlyHTML = hourly.time.slice(0, 6).map((t, i) => `
     <div class="hour">
       <span>${new Date(t).getHours()}:00</span>
       <span>${icon(hourly.weathercode[i])}</span>
@@ -84,11 +91,11 @@ async function loadWeather() {
   document.getElementById("weather").innerHTML = `
     <h2>${loc.name}</h2>
 
-    <div style="font-size:28px;font-weight:bold;">
+    <div style="font-size:26px;font-weight:bold;">
       ${icon(current.weathercode)} ${current.temperature}°F
     </div>
 
-    <div>💨 Wind: ${current.windspeed} mph</div>
+    <div>💨 ${current.windspeed} mph</div>
 
     <hr>
 
@@ -102,8 +109,7 @@ async function loadWeather() {
       ${daily.time.slice(0,5).map((day,i)=>`
         <li>
           ${icon(daily.weathercode[i])}
-          ${daily.temperature_2m_min[i]}°F /
-          ${daily.temperature_2m_max[i]}°F
+          ${daily.temperature_2m_min[i]}° / ${daily.temperature_2m_max[i]}°
         </li>
       `).join("")}
     </ul>
