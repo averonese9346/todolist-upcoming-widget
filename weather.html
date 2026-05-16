@@ -18,25 +18,42 @@
       font-size: 18px;
     }
 
-    .hour {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 1px 0;
-      font-size: 13px;
-      line-height: 1.1;
+    .current {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 4px;
     }
 
-    ul {
-      padding-left: 16px;
-      margin: 6px 0;
+    .wind {
+      font-size: 13px;
+      margin-bottom: 6px;
     }
 
     hr {
       margin: 8px 0;
     }
+
+    .hour {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 1px 0;
+      font-size: 13px;
+      line-height: 1.05;
+    }
+
+    .hour span:first-child {
+      min-width: 48px; /* keeps time aligned but still tight */
+    }
+
+    ul {
+      padding-left: 16px;
+      margin: 6px 0;
+      font-size: 13px;
+    }
   </style>
 </head>
+
 <body>
 
 <div id="weather">Loading weather...</div>
@@ -47,14 +64,20 @@ const locations = {
   chicago: { lat: 41.8781, lon: -87.6298, name: "Chicago, IL" }
 };
 
+/* ---------------------------
+   URL CITY SELECTOR FIX
+----------------------------*/
 const params = new URLSearchParams(window.location.search);
-const selected = params.get("city") || "ingleside";
-const loc = locations[selected];
+const selected = params.get("city") || "chicago";
+const loc = locations[selected] || locations.chicago;
 
+/* ---------------------------
+   WEATHER ICONS
+----------------------------*/
 function icon(code) {
-  if ([0].includes(code)) return "☀️";
+  if (code === 0) return "☀️";
   if ([1,2].includes(code)) return "🌤️";
-  if ([3].includes(code)) return "☁️";
+  if (code === 3) return "☁️";
   if ([45,48].includes(code)) return "🌫️";
   if ([51,53,55,61,63,65].includes(code)) return "🌧️";
   if ([71,73,75].includes(code)) return "❄️";
@@ -62,6 +85,9 @@ function icon(code) {
   return "🌡️";
 }
 
+/* ---------------------------
+   LOAD WEATHER
+----------------------------*/
 async function loadWeather() {
   const url =
     `https://api.open-meteo.com/v1/forecast` +
@@ -80,22 +106,23 @@ async function loadWeather() {
   const hourly = data.hourly;
   const daily = data.daily;
 
+  /* Next 6 hours (tight layout) */
   const hourlyHTML = hourly.time.slice(0, 6).map((t, i) => `
     <div class="hour">
       <span>${new Date(t).getHours()}:00</span>
       <span>${icon(hourly.weathercode[i])}</span>
-      <span>${hourly.temperature_2m[i]}°F</span>
+      <span>${Math.round(hourly.temperature_2m[i])}°F</span>
     </div>
   `).join("");
 
   document.getElementById("weather").innerHTML = `
     <h2>${loc.name}</h2>
 
-    <div style="font-size:26px;font-weight:bold;">
-      ${icon(current.weathercode)} ${current.temperature}°F
+    <div class="current">
+      ${icon(current.weathercode)} ${Math.round(current.temperature)}°F
     </div>
 
-    <div>💨 ${current.windspeed} mph</div>
+    <div class="wind">💨 Wind: ${Math.round(current.windspeed)} mph</div>
 
     <hr>
 
@@ -109,7 +136,8 @@ async function loadWeather() {
       ${daily.time.slice(0,5).map((day,i)=>`
         <li>
           ${icon(daily.weathercode[i])}
-          ${daily.temperature_2m_min[i]}° / ${daily.temperature_2m_max[i]}°
+          ${Math.round(daily.temperature_2m_min[i])}° /
+          ${Math.round(daily.temperature_2m_max[i])}°
         </li>
       `).join("")}
     </ul>
