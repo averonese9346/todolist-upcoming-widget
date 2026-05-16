@@ -2,60 +2,46 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Amber's Dashboard</title>
+  <title>Todoist</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <style>
     body {
-      font-family: system-ui, Arial, sans-serif;
-      padding: 20px;
       margin: 0;
-      background: white;
-      color: #111;
+      font-family: system-ui, Arial, sans-serif;
     }
 
-    h1 {
-      font-size: 20px;
-      margin-bottom: 16px;
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
     }
 
-    .widget {
-      border: 1px solid #eee;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .note {
-      color: #666;
-      font-size: 14px;
+    .fallback {
+      padding: 20px;
+      text-align: center;
     }
 
     a {
       color: #2563eb;
       text-decoration: none;
+      font-weight: 600;
     }
   </style>
 </head>
-
 <body>
 
-  <h1>Todoist Dashboard</h1>
+<iframe
+  src="https://todoist.com/app/today"
+  title="Todoist">
+</iframe>
 
-  <div class="widget">
-    <p>Your Todoist backend was Netlify-based.</p>
-
-    <p class="note">
-      Since you’re now using GitHub Pages, live API task fetching is disabled.
-    </p>
-
-    <p>
-      Open Todoist directly:<br>
-      <a href="https://todoist.com/app/today" target="_blank">
-        View Todoist
-      </a>
-    </p>
-  </div>
+<div class="fallback">
+  If Todoist doesn't load here,
+  <a href="https://todoist.com/app/today" target="_blank">
+    open Todoist directly
+  </a>
+</div>
 
 </body>
 </html>
