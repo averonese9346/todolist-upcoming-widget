@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Weather</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      padding: 16px;
+      margin: 0;
+      color: #111;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .hour {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="weather">Loading weather...</div>
+
+<script>
+const locations = {
+  ingleside: { lat: 42.3817, lon: -88.1531, name: "Ingleside, IL" },
+  chicago: { lat: 41.8781, lon: -87.6298, name: "Chicago, IL" }
+};
+
+// Change this to whichever you want default
+const loc = locations.chicago;
+
+function icon(code) {
+  if ([0].includes(code)) return "☀️";
+  if ([1,2].includes(code)) return "🌤️";
+  if ([3].includes(code)) return "☁️";
+  if ([45,48].includes(code)) return "🌫️";
+  if ([51,53,55,61,63,65].includes(code)) return "🌧️";
+  if ([71,73,75].includes(code)) return "❄️";
+  if ([95,96,99].includes(code)) return "⛈️";
+  return "🌡️";
+}
+
+async function loadWeather() {
+  const url =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${loc.lat}&longitude=${loc.lon}` +
+    `&current_weather=true` +
+    `&hourly=temperature_2m,apparent_temperature,weathercode` +
+    `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode` +
+    `&temperature_unit=fahrenheit` +
+    `&windspeed_unit=mph` +
+    `&timezone=auto`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const current = data.current_weather;
+  const hourly = data.hourly;
+  const daily = data.daily;
+
+  const nowIndex = 0;
+
+  const hourlyHTML = hourly.time.slice(nowIndex, nowIndex + 6).map((t, i) => `
+    <div class="hour">
+      <span>${new Date(t).getHours()}:00</span>
+      <span>${icon(hourly.weathercode[i])}</span>
+      <span>${hourly.temperature_2m[i]}°F</span>
+    </div>
+  `).join("");
+
+  document.getElementById("weather").innerHTML = `
+    <h2>${loc.name}</h2>
+
+    <div style="font-size:28px;font-weight:bold;">
+      ${icon(current.weathercode)} ${current.temperature}°F
+    </div>
+
+    <div>💨 Wind: ${current.windspeed} mph</div>
+
+    <hr>
+
+    <strong>Next 6 Hours</strong>
+    ${hourlyHTML}
+
+    <hr>
+
+    <strong>5-Day Forecast</strong>
+    <ul>
+      ${daily.time.slice(0,5).map((day,i)=>`
+        <li>
+          ${icon(daily.weathercode[i])}
+          ${daily.temperature_2m_min[i]}°F /
+          ${daily.temperature_2m_max[i]}°F
+        </li>
+      `).join("")}
+    </ul>
+  `;
+}
+
+loadWeather();
+</script>
+
+</body>
+</html>
