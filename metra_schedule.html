@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Smart Metra + Calendar</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<style>
+  body {
+    font-family: system-ui, Arial;
+    margin: 0;
+    padding: 12px;
+    color: #111;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(6px);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .line { margin: 6px 0; }
+  .muted { opacity: 0.7; font-size: 13px; }
+</style>
+</head>
+
+<body>
+
+<div id="train">Loading schedule...</div>
+
+<script>
+
+/* =========================
+   GOOGLE CALENDAR ICS FEED
+========================= */
+const CAL_URL =
+"https://calendar.google.com/calendar/ical/3ac5addca5727e40937461446d875ced80062da2580045ef882312be21be980d%40group.calendar.google.com/public/basic.ics";
+
+/* =========================
+   DAY LOGIC
+========================= */
+const day = new Date().getDay();
+
+/* =========================
+   TRAIN DATA
+========================= */
+const schedule = {
+  mondayDance: {
+    to: "NCS Vernon Hills → Chicago Union 6:29 AM (arr 7:38)",
+    from: "NCS Chicago Union → Vernon Hills 4:25 PM (arr 5:32)"
+  },
+  mondayNoDance: {
+    to: [
+      "MDN Fox Lake → Union 7:01 AM (arr 8:34)",
+      "MDN Fox Lake → Union 7:28 AM (arr 9:01)"
+    ],
+    from: "MDN Chicago Union → Long Lake 5:13 PM (arr 6:32)"
+  },
+  tThuEarly: {
+    to: "NCS Vernon Hills → Chicago Union 7:30 AM (arr 8:39)",
+    from: "NCS Chicago Union → Vernon Hills 5:35 PM (arr 6:37)"
+  },
+  tThuLate: {
+    to: "MDN Fox Lake → Union 7:10 AM (arr 8:34)",
+    from: "MDN Chicago Union → Long Lake 5:13 PM (arr 6:32)"
+  }
+};
+
+/* =========================
+   FETCH ICS + PARSE TODAY
+========================= */
+async function hasDanceToday() {
+  try {
+    const res = await fetch(CAL_URL);
+    const text = await res.text();
+
+    const today = new Date();
+    const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
+
+    // crude ICS match for today's events
+    const eventsToday = text.includes(dateStr);
+
+    // keyword detection
+    const danceKeywords = ["dance", "class", "studio"];
+
+    const hasDance = danceKeywords.some(k =>
+      text.toLowerCase().includes(k)
+    );
+
+    return hasDance && eventsToday;
+  } catch (e) {
+    console.log("Calendar fetch failed:", e);
+    return false;
+  }
+}
+
+/* =========================
+   BUILD SCHEDULE LOGIC
+========================= */
+function buildSchedule(hasDance) {
+
+  // MONDAY
+  if (day === 1) {
+    if (hasDance) {
+      return {
+        label: "Monday Dance Day (NCS Line)",
+        to: schedule.mondayDance.to,
+        from: schedule.mondayDance.from
+      };
+    } else {
+      return {
+        label: "Monday Non-Dance (MDN Line)",
+        to: schedule.mondayNoDance.to.join("<br>"),
+        from: schedule.mondayNoDance.from
+      };
+    }
+  }
+
+  // TUESDAY / THURSDAY
+  if (day === 2 || day === 4) {
+    if (hasDance) {
+      return {
+        label: "Dance Day (Morning Class)",
+        to: schedule.tThuEarly.to,
+        from: schedule.tThuEarly.from
+      };
+    } else {
+      return {
+        label: "Dance Day (Evening Class)",
+        to: schedule.tThuLate.to,
+        from: schedule.tThuLate.from
+      };
+    }
+  }
+
+  return null;
+}
+
+/* =========================
+   RENDER
+========================= */
+async function render() {
+
+  const hasDance = await hasDanceToday();
+  const data = buildSchedule(hasDance);
+
+  if (!data) {
+    document.getElementById("train").innerHTML = `
+      <div class="card">
+        <div class="title">🚆 No Commute Today</div>
+        <div class="muted">No Metra schedule detected.</div>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("train").innerHTML = `
+    <div class="card">
+      <div class="title">🚆 ${data.label}</div>
+
+      <div class="line">
+        <strong>To Chicago:</strong><br>
+        ${data.to}
+      </div>
+
+      <div class="line">
+        <strong>Return:</strong><br>
+        ${data.from}
+      </div>
+
+      <div class="muted">Synced with Google Calendar</div>
+    </div>
+  `;
+}
+
+render();
+
+</script>
+
+</body>
+</html>
